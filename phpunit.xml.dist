@@ -9,6 +9,9 @@
          syntaxCheck="false"
          bootstrap="vendor/autoload.php"
         >
+    <logging>
+        <log type="coverage-clover" target="coverage.xml" />
+    </logging>
 
     <testsuites>
         <testsuite name="flysystem-aliyun-oss unit tests">

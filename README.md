@@ -48,8 +48,6 @@ see [Laravel wiki](https://laravel.com/docs/5.1/filesystem)
 
 ## Plugins
 
-inspire by [itbdw/laravel-storage-qiniu](https://github.com/itbdw/laravel-storage-qiniu)
-
 ```php
 Storage::disk('oss')->putFile($path, '/local_file_path/1.png', ['mimetype' => 'image/png']);
 Storage::disk('oss')->signedDownloadUrl($path, 3600, 'oss-cn-beijing.aliyuncs.com', true);

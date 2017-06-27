@@ -31,8 +31,8 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         $client = new OssClient($accessId, $accessKey, $endPoint);
         $adapter = new AliyunOssAdapter($client, $bucket);
 
-        $adapter->deleteDir('test');
-        $adapter->setPathPrefix('test');
+        $adapter->deleteDir(time() . 'aliyun-oss-php-flysystem-test-cases');
+        $adapter->setPathPrefix(time() . 'aliyun-oss-php-flysystem-test-cases');
 
         $filesystem = new Filesystem($adapter);
         $filesystem->addPlugin(new PutFile());
@@ -40,53 +40,88 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         $this->filesystem = $filesystem;
     }
 
+    public function setUp()
+    {
+		$this->create_dir = time() . "test-create-dir";
+
+		$this->prepare_file = time() . "prepare-file";
+        $this->assertTrue($this->filesystem->write($this->prepare_file, 'xxx'));
+
+		$this->rename_file = time() . "rename-file";
+        $this->assertTrue($this->filesystem->write($this->rename_file, 'xxx'));
+
+		$this->delete_file = time() . "delete-file";
+        $this->assertTrue($this->filesystem->write($this->delete_file, 'xxx'));
+	}
+
+	public function tearDown()
+	{
+        if ($this->filesystem->has($this->prepare_file))
+		{
+			$this->filesystem->delete($this->prepare_file);
+		}
+        if ($this->filesystem->has($this->rename_file))
+		{
+			$this->filesystem->delete($this->rename_file);
+		}
+        if ($this->filesystem->has($this->delete_file))
+		{
+			$this->filesystem->delete($this->delete_file);
+		}
+	}
+
+	/**
+	 *
+	 */
     public function testPutFile()
     {
         $tmpfile = tempnam(sys_get_temp_dir(), 'OSS');
         file_put_contents($tmpfile, 'put file');
 
-        $this->assertTrue($this->filesystem->putFile('1.txt', $tmpfile));
-        $this->assertSame('put file', $this->filesystem->read('1.txt'));
+		$dest_file = time() . "test-put-file";
+        $this->assertTrue($this->filesystem->putFile($dest_file, $tmpfile));
+        $this->assertSame('put file', $this->filesystem->read($dest_file));
 
         unlink($tmpfile);
-        $this->filesystem->delete('1.txt');
+        $this->filesystem->delete($dest_file);
     }
 
     /**
-     * 1.txt.
+     * 
      */
     public function testWrite()
     {
-        $this->assertTrue($this->filesystem->write('1.txt', '123'));
+		$dest_file = time() . "test-write-file";
+        $this->assertTrue($this->filesystem->write($dest_file, '123'));
+        $this->assertTrue($this->filesystem->delete($dest_file));
     }
 
     /**
-     * 1.txt
-     * 2.txt.
+     * 
      */
     public function testWriteStream()
     {
+		$dest_file = time() . "test-write-stream";
         $stream = tmpfile();
         fwrite($stream, 'OSS text');
         rewind($stream);
 
-        $this->assertTrue($this->filesystem->writeStream('2.txt', $stream));
+        $this->assertTrue($this->filesystem->writeStream($dest_file, $stream));
 
         fclose($stream);
+        $this->assertTrue($this->filesystem->delete($dest_file));
     }
 
     /**
-     * 1.txt
-     * 2.txt.
+     * 
      */
     public function testUpdate()
     {
-        $this->assertTrue($this->filesystem->update('1.txt', '456'));
+        $this->assertTrue($this->filesystem->update($this->prepare_file, __FUNCTION__));
     }
 
     /**
-     * 1.txt
-     * 2.txt.
+     *
      */
     public function testUpdateStream()
     {
@@ -94,128 +129,88 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         fwrite($stream, 'OSS text2');
         rewind($stream);
 
-        $this->assertTrue($this->filesystem->updateStream('2.txt', $stream));
+        $this->assertTrue($this->filesystem->updateStream($this->prepare_file, $stream));
 
         fclose($stream);
     }
 
     public function testHas()
     {
-        $this->assertTrue($this->filesystem->has('1.txt'));
-        $this->assertFalse($this->filesystem->has('3.txt'));
+        $this->assertTrue($this->filesystem->has($this->prepare_file));
+        $this->assertFalse($this->filesystem->has($this->prepare_file . "xxx"));
     }
 
     /**
-     * 1.txt
-     * 2.txt
-     * 3.txt.
+     *
      */
     public function testCopy()
     {
-        $this->assertTrue($this->filesystem->copy('1.txt', '3.txt'));
-        $this->assertTrue($this->filesystem->has('3.txt'));
+        $this->assertTrue($this->filesystem->copy($this->rename_file, 'copy.txt'));
+        $this->assertTrue($this->filesystem->has('copy.txt'));
+        $this->assertTrue($this->filesystem->delete('copy.txt'));
     }
 
     /**
-     * 1.txt
-     * 2.txt.
+     * 
      */
     public function testDelete()
     {
-        $this->assertTrue($this->filesystem->delete('3.txt'));
-        $this->assertFalse($this->filesystem->has('3.txt'));
+        $this->assertTrue($this->filesystem->delete($this->delete_file));
+        $this->assertFalse($this->filesystem->has($this->delete_file));
     }
 
     /**
-     * 3.txt
-     * 2.txt.
+     *
      */
     public function testRename()
     {
-        $this->assertTrue($this->filesystem->rename('1.txt', '3.txt'));
-        $this->assertFalse($this->filesystem->has('1.txt'));
-        $this->assertTrue($this->filesystem->has('3.txt'));
+		$file = time() . 'txt';
+        $this->assertTrue($this->filesystem->rename($this->rename_file, $file));
+        $this->assertFalse($this->filesystem->has($this->rename_file));
+        $this->assertTrue($this->filesystem->has($file));
+        $this->assertTrue($this->filesystem->delete($file));
     }
 
     /**
-     * 3.txt
-     * 2.txt
-     * test/1.txt.
+     *
      */
     public function testCreateDir()
     {
-        $this->assertTrue($this->filesystem->createDir('test'));
-        $this->assertTrue($this->filesystem->copy('2.txt', 'test/1.txt'));
+        $this->assertTrue($this->filesystem->createDir($this->create_dir));
+        $this->assertTrue($this->filesystem->copy($this->prepare_file, $this->create_dir . '/' . $this->prepare_file));
     }
 
     public function testListContents()
     {
         $list = $this->filesystem->listContents('');
-        $this->assertArraySubset(
-            [
-                [
-                    'type' => 'file',
-                    'path' => '2.txt',
-                ],
-                [
-                    'type' => 'file',
-                    'path' => '3.txt',
-                ],
-                [
-                    'type' => 'dir',
-                    'path' => 'test',
-                ],
-            ],
-            $list
-        );
-
-        $list = $this->filesystem->listContents('', true);
-        $this->assertArraySubset(
-            [
-                [
-                    'type' => 'file',
-                    'path' => '2.txt',
-                ],
-                [
-                    'type' => 'file',
-                    'path' => '3.txt',
-                ],
-                [
-                    'type' => 'dir',
-                    'path' => 'test',
-                ],
-                [
-                    'type' => 'file',
-                    'path' => 'test/1.txt',
-                ],
-            ],
-            $list
-        );
-    }
+        $this->assertEquals(count($list), 4);
+		$list = $this->filesystem->listContents('', true);
+        $this->assertEquals(count($list), 5);
+	}
 
     /**
-     * 3.txt
-     * 2.txt.
+     *
      */
     public function testDeleteDir()
     {
-        $this->assertTrue($this->filesystem->deleteDir('test'));
-        $this->assertFalse($this->filesystem->has('test/'));
+        $this->assertTrue($this->filesystem->createDir($this->create_dir));
+        $this->assertTrue($this->filesystem->deleteDir($this->create_dir));
+        $this->assertFalse($this->filesystem->has($this->create_dir . '/'));
     }
 
     public function testRead()
     {
-        $this->assertInternalType('string', $this->filesystem->read('2.txt'));
+        $this->assertInternalType('string', $this->filesystem->read($this->prepare_file));
     }
 
     public function testReadStream()
     {
-        $this->assertInternalType('resource', $this->filesystem->readStream('2.txt'));
+        $this->assertInternalType('resource', $this->filesystem->readStream($this->prepare_file));
     }
 
     public function testGetMetadata()
     {
-        $data = $this->filesystem->getMetadata('2.txt');
+        $data = $this->filesystem->getMetadata($this->prepare_file);
 
         $this->assertArrayHasKey('type', $data);
         $this->assertArrayHasKey('dirname', $data);
@@ -227,16 +222,16 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testGetMimetype()
     {
-        $this->assertInternalType('string', $this->filesystem->getMimetype('2.txt'));
+        $this->assertInternalType('string', $this->filesystem->getMimetype($this->prepare_file));
     }
 
     public function testGetTimestamp()
     {
-        $this->assertInternalType('integer', $this->filesystem->getTimestamp('2.txt'));
+        $this->assertInternalType('integer', $this->filesystem->getTimestamp($this->prepare_file));
     }
 
     public function testGetSize()
     {
-        $this->assertInternalType('integer', $this->filesystem->getSize('2.txt'));
+        $this->assertInternalType('integer', $this->filesystem->getSize($this->prepare_file));
     }
 }

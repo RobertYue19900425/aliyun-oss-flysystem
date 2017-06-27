@@ -183,10 +183,18 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testListContents()
     {
-        $list = $this->filesystem->listContents('');
-        $this->assertEquals(count($list), 3);
-		$list = $this->filesystem->listContents('', true);
-        $this->assertEquals(count($list), 4);
+        $dir = time() ."listcontents";
+        $this->assertTrue($this->filesystem->createDir($dir));
+        $this->assertTrue($this->filesystem->write($dir . '/a.txt', '123'));
+        $this->assertTrue($this->filesystem->has($dir . '/a.txt'));
+
+        $this->assertTrue($this->filesystem->write($dir . '/b.txt', 'abc'));
+        $this->assertTrue($this->filesystem->has($dir . '/b.txt'));
+
+        $list = $this->filesystem->listContents($dir, true);
+        $this->assertEquals(count($list), 2);
+        
+		$this->assertTrue($this->filesystem->deleteDir($dir));
 	}
 
     /**

@@ -5,62 +5,32 @@ This is a Flysystem adapter for the Aliyun OSS ~2.0.4
 ## Installation
 
 ```bash
-composer require moyue/aliyun-oss-flysystem
+composer require moyue/aliyun-oss-flysystem dev-master
 ```
 
-## for Laravel
+## run samples
 
-This service provider must be registered.
+```
+cd vendor/moyue/aliyun-oss-flysystem/
+vim samples/Config.php
 
-```php
-// config/app.php
+modify the following config:
+ const OSS_ACCESS_ID = '';
+ const OSS_ACCESS_KEY = '';
+ const OSS_ENDPOINT = '';
+ const OSS_TEST_BUCKET = '';
 
-'providers' => [
-    '...',
-    Moyue\Flysystem\AliyunOss\AliyunOssServiceProvider::class,
-];
+php samples/AliyunOssFlysystem.php
 ```
 
-edit the config file: config/filesystems.php
+## run tests
 
-add config
-
-```php
-'oss' => [
-    'driver'     => 'oss',
-    'access_id'  => env('OSS_ACCESS_ID','your id'),
-    'access_key' => env('OSS_ACCESS_KEY','your key'),
-    'bucket'     => env('OSS_BUCKET','your bucket'),
-    'endpoint'   => env('OSS_ENDPOINT','your endpoint'),
-    'prefix'     => env('OSS_PREFIX', ''), // optional
-],
-```
-
-change default to oss
-
-```php
-    'default' => 'oss'
-```
-
-## Use
-
-see [Laravel wiki](https://laravel.com/docs/5.1/filesystem)
-
-## Plugins
-
-```php
-Storage::disk('oss')->putFile($path, '/local_file_path/1.png', ['mimetype' => 'image/png']);
-Storage::disk('oss')->signedDownloadUrl($path, 3600, 'oss-cn-beijing.aliyuncs.com', true);
-```
-
-## IDE Helper
-
-if installed [barryvdh/laravel-ide-helper](https://github.com/barryvdh/laravel-ide-helper)
-
-edit the config file: config/ide-helper.php
-
-```php
-'interfaces'      => [
-    '\Illuminate\Contracts\Filesystem\Filesystem' => Moyue\Flysystem\AliyunOss\FilesystemAdapter::class,
-],
+```bash
+export OSS_ACCESS_KEY_ID=your id
+export OSS_ACCESS_KEY_SECRET=your secret
+export OSS_ENDPOINT=your endpoint
+export OSS_BUCKET=your bucket
+cd vendor/moyue/aliyun-oss-flysystem/
+composer install
+php vendor/bin/phpunit
 ```

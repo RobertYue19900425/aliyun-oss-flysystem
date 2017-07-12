@@ -166,8 +166,8 @@ class AliyunOssAdapter extends AbstractAdapter
      */
     public function rename($path, $newpath)
     {
-        $this->copy($path, $newpath)
-        return $this->delete($path);
+        $this->copy($path, $newpath);
+        $this->delete($path);
     }
 
     /**

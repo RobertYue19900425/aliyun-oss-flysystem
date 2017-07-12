@@ -195,7 +195,12 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testDelete()
     {
-        $this->assertTrue($this->filesystem->delete($this->delete_file));
+        try
+		{
+			$this->filesystem->delete($this->delete_file);
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+		}
         $this->assertFalse($this->filesystem->has($this->delete_file));
     }
 
@@ -205,10 +210,10 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
     public function testRename()
     {
 		$file = time() . 'txt';
-        $this->assertTrue($this->filesystem->rename($this->rename_file, $file));
+        $this->filesystem->rename($this->rename_file, $file);
         $this->assertFalse($this->filesystem->has($this->rename_file));
-        $this->assertTrue($this->filesystem->has($file));
-        $this->assertTrue($this->filesystem->delete($file));
+        $this->assertTrue($this->filesystem->has($file);
+        $this->filesystem->delete($file)
     }
 
     /**
@@ -216,24 +221,34 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateDir()
     {
-        $this->assertTrue($this->filesystem->createDir($this->create_dir));
-        $this->assertTrue($this->filesystem->copy($this->prepare_file, $this->create_dir . '/' . $this->prepare_file));
+        try
+		{
+			$this->filesystem->createDir($this->create_dir);
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+        }
+        try
+		{
+			$this->filesystem->copy($this->prepare_file, $this->create_dir . '/' . $this->prepare_file);
+		} catch(OssException $e) {
+            $this->assertTrue(false);
+		}
     }
 
     public function testListContents()
     {
         $dir = time() ."listcontents";
-        $this->assertTrue($this->filesystem->createDir($dir));
-        $this->assertTrue($this->filesystem->write($dir . '/a.txt', '123'));
+        $this->filesystem->createDir($dir);
+        $this->filesystem->write($dir . '/a.txt', '123');
         $this->assertTrue($this->filesystem->has($dir . '/a.txt'));
 
-        $this->assertTrue($this->filesystem->write($dir . '/b.txt', 'abc'));
+        $this->filesystem->write($dir . '/b.txt', 'abc');
         $this->assertTrue($this->filesystem->has($dir . '/b.txt'));
 
         $list = $this->filesystem->listContents($dir, true);
         $this->assertEquals(count($list), 2);
         
-		$this->assertTrue($this->filesystem->deleteDir($dir));
+		$this->filesystem->deleteDir($dir);
 	}
 
     /**
@@ -241,8 +256,8 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testDeleteDir()
     {
-        $this->assertTrue($this->filesystem->createDir($this->create_dir));
-        $this->assertTrue($this->filesystem->deleteDir($this->create_dir));
+        $this->filesystem->createDir($this->create_dir);
+        $this->filesystem->deleteDir($this->create_dir);
         $this->assertFalse($this->filesystem->has($this->create_dir . '/'));
     }
 

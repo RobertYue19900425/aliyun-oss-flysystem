@@ -213,7 +213,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         $this->filesystem->rename($this->rename_file, $file);
         $this->assertFalse($this->filesystem->has($this->rename_file));
         $this->assertTrue($this->filesystem->has($file));
-        $this->filesystem->delete($file)
+        $this->filesystem->delete($file);
     }
 
     /**

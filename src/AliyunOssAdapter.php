@@ -9,6 +9,7 @@ use League\Flysystem\Config;
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\StreamedTrait;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
+use League\Flysystem\AdapterInterface;
 
 /**
  * Aliyun Oss Adapter class.
@@ -100,13 +101,6 @@ class AliyunOssAdapter extends AbstractAdapter
 
         if (! isset($options[OssClient::OSS_CONTENT_TYPE])) {
             $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, '');
-        }
-
-	   if (! isset($options['OssClient::OSS_CONTENT_LENGTH'])) {
-            $options['OssClient::OSS_CONTENT_LENGTH'] = Util::getStreamSize($localFilePath);
-        }
-        if ($options['OssClient::OSS_CONTENT_LENGTH'] === null) {
-            unset($options['OssClient::OSS_CONTENT_LENGTH']);
         }
 
         $this->client->uploadFile($this->bucket, $object, $localFilePath, $options);
@@ -417,14 +411,14 @@ class AliyunOssAdapter extends AbstractAdapter
     /**
      * {@inheritdoc}
      */
-/*    public function setVisibility($path, $visibility)
+    public function setVisibility($path, $visibility)
     {
         $bucket = $this->bucket;
         $acl = ( $visibility === AdapterInterface::VISIBILITY_PUBLIC ) ? 'public-read' : 'private';
         $this->client->putBucketAcl($bucket,$acl);
         return compact('visibility');
     }
-*/
+
    /**
      * {@inheritdoc}
      */
@@ -442,12 +436,12 @@ class AliyunOssAdapter extends AbstractAdapter
      *
      * @return string
      */
-  /*  protected function getObjectACL($path)
+    protected function getObjectACL($path)
     {
         $metadata = $this->getVisibility($path);
         return $metadata['visibility'] === AdapterInterface::VISIBILITY_PUBLIC ? 'public-read' : 'private';
     }
-	*/ 
+	
 	
 	protected function doesDirectoryExist($object)
     {

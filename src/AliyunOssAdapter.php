@@ -102,18 +102,20 @@ class AliyunOssAdapter extends AbstractAdapter
             $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, '');
         }
 
-        try {
-            $this->client->uploadFile($this->bucket, $object, $localFilePath, $options);
-        } catch (OssException $e) {
-            return false;
+	   if (! isset($options['OssClient::OSS_CONTENT_LENGTH'])) {
+            $options['OssClient::OSS_CONTENT_LENGTH'] = Util::getStreamSize($localFilePath);
         }
+        if ($options['OssClient::OSS_CONTENT_LENGTH'] === null) {
+            unset($options['OssClient::OSS_CONTENT_LENGTH']);
+        }
+
+        $this->client->uploadFile($this->bucket, $object, $localFilePath, $options);
 
         $type = 'file';
         $result = compact('type', 'path');
         $result['mimetype'] = $options[OssClient::OSS_CONTENT_TYPE];
-
         return $result;
-    }
+	}
 
     /**
      * Write a new file.
@@ -136,18 +138,13 @@ class AliyunOssAdapter extends AbstractAdapter
             $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, $contents);
         }
 
-        try {
-            $this->client->putObject($this->bucket, $object, $contents, $options);
-        } catch (OssException $e) {
-            return false;
-        }
-
-        $type = 'file';
+        $this->client->putObject($this->bucket, $object, $contents, $options);
+    
+		$type = 'file';
         $result = compact('type', 'path', 'contents');
         $result['mimetype'] = $options[OssClient::OSS_CONTENT_TYPE];
         $result['size'] = $options[OssClient::OSS_LENGTH];
-
-        return $result;
+        return $result;    
     }
 
     /**
@@ -160,6 +157,9 @@ class AliyunOssAdapter extends AbstractAdapter
      */
     public function update($path, $contents, Config $config)
     {
+		if (! $config->has('visibility') && ! $config->has('ACL')) {
+        	$config->set('ACL', $this->getObjectACL($path));
+        }
         return $this->write($path, $contents, $config);
     }
 
@@ -191,13 +191,7 @@ class AliyunOssAdapter extends AbstractAdapter
         $object = $this->applyPathPrefix($path);
         $newobject = $this->applyPathPrefix($newpath);
 
-        try {
-            $this->client->copyObject($this->bucket, $object, $this->bucket, $newobject);
-        } catch (OssException $e) {
-            return false;
-        }
-
-        return true;
+        $this->client->copyObject($this->bucket, $object, $this->bucket, $newobject);
     }
 
     /**
@@ -210,13 +204,7 @@ class AliyunOssAdapter extends AbstractAdapter
     {
         $object = $this->applyPathPrefix($path);
 
-        try {
-            $this->client->deleteObject($this->bucket, $object);
-        } catch (OssException $e) {
-            return false;
-        }
-
-        return true;
+        $this->client->deleteObject($this->bucket, $object);
     }
 
     /**
@@ -238,13 +226,7 @@ class AliyunOssAdapter extends AbstractAdapter
             }
         }
 
-        try {
-            $this->client->deleteObjects($this->bucket, $objects);
-        } catch (OssException $e) {
-            return false;
-        }
-
-        return true;
+        $this->client->deleteObjects($this->bucket, $objects);
     }
 
     /**
@@ -259,11 +241,7 @@ class AliyunOssAdapter extends AbstractAdapter
         $object = $this->applyPathPrefix($dirname);
         $options = $this->getOptionsFromConfig($config);
 
-        try {
-            $this->client->createObjectDir($this->bucket, $object, $options);
-        } catch (OssException $e) {
-            return false;
-        }
+        $this->client->createObjectDir($this->bucket, $object, $options);
 
         return ['path' => $dirname, 'type' => 'dir'];
     }
@@ -278,13 +256,12 @@ class AliyunOssAdapter extends AbstractAdapter
     {
         $object = $this->applyPathPrefix($path);
 
-        try {
-            $exists = $this->client->doesObjectExist($this->bucket, $object);
-        } catch (OssException $e) {
-            return false;
-        }
+        if ($this->client->doesObjectExist($this->bucket, $object))
+		{
+			return true;
+		}
 
-        return $exists;
+        return $this->doesDirectoryExist($object);
     }
 
     /**
@@ -296,13 +273,7 @@ class AliyunOssAdapter extends AbstractAdapter
     public function read($path)
     {
         $object = $this->applyPathPrefix($path);
-
-        try {
-            $contents = $this->client->getObject($this->bucket, $object);
-        } catch (OssException $e) {
-            return false;
-        }
-
+        $contents = $this->client->getObject($this->bucket, $object);
         return compact('contents', 'path');
     }
 
@@ -379,11 +350,7 @@ class AliyunOssAdapter extends AbstractAdapter
     {
         $object = $this->applyPathPrefix($path);
 
-        try {
-            $result = $this->client->getObjectMeta($this->bucket, $object);
-        } catch (OssException $e) {
-            return false;
-        }
+        $result = $this->client->getObjectMeta($this->bucket, $object);
 
         return [
             'type'      => 'file',
@@ -445,5 +412,64 @@ class AliyunOssAdapter extends AbstractAdapter
         }
 
         return $options;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setVisibility($path, $visibility)
+    {
+        $bucket = $this->bucket;
+        $acl = ( $visibility === AdapterInterface::VISIBILITY_PUBLIC ) ? 'public-read' : 'private';
+        $this->client->putBucketAcl($bucket,$acl);
+        return compact('visibility');
+    }
+
+   /**
+     * {@inheritdoc}
+     */
+    public function getVisibility($path)
+    {
+        $bucket = $this->bucket;
+        $res['visibility'] = $this->client->getBucketAcl($bucket);
+        return $res;
+    }
+    
+	/**
+     * The the ACL visibility.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    protected function getObjectACL($path)
+    {
+        $metadata = $this->getVisibility($path);
+        return $metadata['visibility'] === AdapterInterface::VISIBILITY_PUBLIC ? 'public-read' : 'private';
+    }
+	 
+	
+	protected function doesDirectoryExist($object)
+    {
+        // Maybe this isn't an actual key, but a prefix.
+        // Do a prefix listing of objects to determine.
+
+        $bucket = $this->bucket;
+        $delimiter = '/';
+        $nextMarker = '';
+        $maxkeys = 1000;
+		$prefix = rtrim($object, '/') . '/';
+        $options = [
+            'delimiter' => $delimiter,
+            'prefix'    => $prefix,
+            'max-keys'  => $maxkeys,
+            'marker'    => $nextMarker,
+        ];
+
+        $listObjectInfo = $this->client->listObjects($bucket, $options);
+        $objectList = $listObjectInfo->getObjectList(); // 文件列表
+        $prefixList = $listObjectInfo->getPrefixList(); // 目录列表
+
+		return $objectList || $prefixList;
     }
 }

@@ -179,7 +179,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 		} catch (OssException $e) {
             $this->assertTrue(false);
         }
-        $this->assertEquals($acl, $result);
+        $this->assertEquals('public-read', $result);
     }
 
     /**

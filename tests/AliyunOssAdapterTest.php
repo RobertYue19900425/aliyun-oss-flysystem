@@ -45,13 +45,13 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 		$this->create_dir = time() . "test-create-dir";
 
 		$this->prepare_file = time() . "prepare-file";
-        $this->assertTrue($this->filesystem->write($this->prepare_file, 'xxx'));
+        $this->filesystem->write($this->prepare_file, 'xxx');
 
 		$this->rename_file = time() . "rename-file";
-        $this->assertTrue($this->filesystem->write($this->rename_file, 'xxx'));
+        $this->filesystem->write($this->rename_file, 'xxx');
 
 		$this->delete_file = time() . "delete-file";
-        $this->assertTrue($this->filesystem->write($this->delete_file, 'xxx'));
+        $this->filesystem->write($this->delete_file, 'xxx');
 	}
 
 	public function tearDown()
@@ -79,7 +79,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         file_put_contents($tmpfile, 'put file');
 
 		$dest_file = time() . "test-put-file";
-        $this->assertTrue($this->filesystem->putFile($dest_file, $tmpfile));
+        $this->filesystem->putFile($dest_file, $tmpfile);
         $this->assertSame('put file', $this->filesystem->read($dest_file));
 
         unlink($tmpfile);
@@ -92,8 +92,18 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
     public function testWrite()
     {
 		$dest_file = time() . "test-write-file";
-        $this->assertTrue($this->filesystem->write($dest_file, '123'));
-        $this->assertTrue($this->filesystem->delete($dest_file));
+        try
+		{
+			$this->filesystem->write($dest_file, '123'));
+		} catch (OssException $e) {
+	        $this->assertTrue(false);
+		}
+		try
+		{
+        	$this->filesystem->delete($dest_file);
+		} catch (OssException $e) {
+	        $this->assertTrue(false);
+		}
     }
 
     /**
@@ -106,10 +116,21 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         fwrite($stream, 'OSS text');
         rewind($stream);
 
-        $this->assertTrue($this->filesystem->writeStream($dest_file, $stream));
+        try
+		{
+			$this->filesystem->writeStream($dest_file, $stream);
+		} catch (OssException $e) {
+	        $this->assertTrue(false);
+		}
 
         fclose($stream);
-        $this->assertTrue($this->filesystem->delete($dest_file));
+		
+        try
+		{
+			$this->filesystem->delete($dest_file);
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+	    }
     }
 
     /**
@@ -117,7 +138,12 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdate()
     {
-        $this->assertTrue($this->filesystem->update($this->prepare_file, __FUNCTION__));
+        try
+		{
+			$this->filesystem->update($this->prepare_file, __FUNCTION__));
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+        }
     }
 
     /**
@@ -129,7 +155,11 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         fwrite($stream, 'OSS text2');
         rewind($stream);
 
-        $this->assertTrue($this->filesystem->updateStream($this->prepare_file, $stream));
+        try {
+			$this->filesystem->updateStream($this->prepare_file, $stream);
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+        }
 
         fclose($stream);
     }
@@ -145,9 +175,19 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testCopy()
     {
-        $this->assertTrue($this->filesystem->copy($this->rename_file, 'copy.txt'));
+        try
+		{
+			$this->filesystem->copy($this->rename_file, 'copy.txt');
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+	    }
         $this->assertTrue($this->filesystem->has('copy.txt'));
-        $this->assertTrue($this->filesystem->delete('copy.txt'));
+        try
+		{
+			$this->filesystem->delete('copy.txt');
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+	    }
     }
 
     /**

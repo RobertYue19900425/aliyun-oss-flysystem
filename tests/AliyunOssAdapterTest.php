@@ -30,7 +30,9 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 
         $client = new OssClient($accessId, $accessKey, $endPoint);
         $adapter = new AliyunOssAdapter($client, $bucket);
-		
+        $this->assertEquals($bucket, $this->getBucket());
+        $this->assertEquals($client, $this->getClient());
+			
 		$dir = time() . 'aliyun-oss-php-flysystem-test-cases';
         $adapter->setPathPrefix($dir);
 
@@ -275,13 +277,19 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
     {
         $dir = time() ."listcontents";
         $this->filesystem->createDir($dir);
-		for ($i=0; $i<10; $i++) {
-        	$this->filesystem->write($dir . '/' . $i . '.txt', '123');
-		} 
+        
+		$this->filesystem->write($dir . '/1.txt', '123');
+		$this->filesystem->write($dir . '/2.txt', '123');
+		$this->filesystem->write($dir . '/3.txt', '123');
+		$this->filesystem->write($dir . '/secondlevel/4.txt', '123');
+		 
 
         $list = $this->filesystem->listContents($dir, true);
-        $this->assertEquals(count($list), 10);
-        
+        $this->assertEquals(count($list), 4);
+ 
+        $list = $this->filesystem->listContents($dir, true);
+        $this->assertEquals(count($list), 3);
+       
 		$this->filesystem->deleteDir($dir);
 	}
 

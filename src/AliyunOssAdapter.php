@@ -423,7 +423,7 @@ class AliyunOssAdapter extends AbstractAdapter
     {
         $bucket = $this->bucket;
         $object = $this->applyPathPrefix($path);
-		$res['visibility'] = $client->getObjectAcl($bucket, $object);
+		$res['visibility'] = $this->client->getObjectAcl($bucket, $object);
         return $res;
     }
     

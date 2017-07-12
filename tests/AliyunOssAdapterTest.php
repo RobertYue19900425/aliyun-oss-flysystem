@@ -275,7 +275,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         $dir = time() ."listcontents";
         $this->filesystem->createDir($dir);
 		for ($i=0; $i<2000; $i++) {
-        	$this->filesystem->write($dir,  $i . '.txt', '123');
+        	$this->filesystem->write($dir . '/' . $i . '.txt', '123');
 		} 
 
         $list = $this->filesystem->listContents($dir, true);

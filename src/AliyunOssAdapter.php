@@ -410,9 +410,9 @@ class AliyunOssAdapter extends AbstractAdapter
      */
     public function setVisibility($path, $visibility)
     {
-        $bucket = $this->bucket;
-        $acl = ( $visibility === AdapterInterface::VISIBILITY_PUBLIC ) ? 'public-read' : 'private';
-        $this->client->putBucketAcl($bucket,$acl);
+        $object = $this->applyPathPrefix($path);
+        $acl = ($visibility === AdapterInterface::VISIBILITY_PUBLIC ) ? 'public-read' : 'private';
+        $this->client->putObjectAcl($this->bucket, $object, $acl);
         return compact('visibility');
     }
 
@@ -422,7 +422,8 @@ class AliyunOssAdapter extends AbstractAdapter
     public function getVisibility($path)
     {
         $bucket = $this->bucket;
-        $res['visibility'] = $this->client->getBucketAcl($bucket);
+        $object = $this->applyPathPrefix($path);
+		$res['visibility'] = $client->getObjectAcl($bucket, $object);
         return $res;
     }
     

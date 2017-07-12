@@ -145,6 +145,41 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue(false);
         }
     }
+	/**
+	  *
+	  */
+    public function testVisibility()
+    {
+		$acl = 'private';
+        try
+		{
+			$this->filesystem->setVisibility($this->prepare_file, $acl);
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+        }
+        try
+		{
+			$result = $this->filesystem->getVisibility($this->prepare_file);
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+        }
+        $this->assertEquals($acl, $result);
+		
+		$acl = 'public-read';
+        try
+		{
+			$this->filesystem->setVisibility($this->prepare_file, $acl);
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+        }
+        try
+		{
+			$result = $this->filesystem->getVisibility($this->prepare_file);
+		} catch (OssException $e) {
+            $this->assertTrue(false);
+        }
+        $this->assertEquals($acl, $result);
+    }
 
     /**
      *
@@ -239,14 +274,12 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
     {
         $dir = time() ."listcontents";
         $this->filesystem->createDir($dir);
-        $this->filesystem->write($dir . '/a.txt', '123');
-        $this->assertTrue($this->filesystem->has($dir . '/a.txt'));
-
-        $this->filesystem->write($dir . '/b.txt', 'abc');
-        $this->assertTrue($this->filesystem->has($dir . '/b.txt'));
+		for ($i=0; $i<2000; $i++) {
+        	$this->filesystem->write($dir,  $i . '.txt', '123');
+		} 
 
         $list = $this->filesystem->listContents($dir, true);
-        $this->assertEquals(count($list), 2);
+        $this->assertEquals(count($list), 2000);
         
 		$this->filesystem->deleteDir($dir);
 	}

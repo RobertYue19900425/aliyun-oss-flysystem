@@ -166,7 +166,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         }
         $this->assertEquals($acl, $result['visibility']);
 		
-		$acl = 'public-read';
+		$acl = 'public';
         try
 		{
 			$this->filesystem->setVisibility($this->prepare_file, $acl);

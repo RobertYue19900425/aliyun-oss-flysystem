@@ -424,7 +424,7 @@ class AliyunOssAdapter extends AbstractAdapter
         $bucket = $this->bucket;
         $object = $this->applyPathPrefix($path);
 		$res['visibility'] = $this->client->getObjectAcl($bucket, $object);
-        return $res;
+		return $res;
     }
     
 	/**
@@ -439,7 +439,6 @@ class AliyunOssAdapter extends AbstractAdapter
         $metadata = $this->getVisibility($path);
         return $metadata['visibility'] === AdapterInterface::VISIBILITY_PUBLIC ? 'public-read' : 'private';
     }
-	
 	
 	protected function doesDirectoryExist($object)
     {

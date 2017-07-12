@@ -157,13 +157,14 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 		} catch (OssException $e) {
             $this->assertTrue(false);
         }
+
         try
 		{
 			$result = $this->filesystem->getVisibility($this->prepare_file);
 		} catch (OssException $e) {
             $this->assertTrue(false);
         }
-        $this->assertEquals($acl, $result);
+        $this->assertEquals($acl, $result['visibility']);
 		
 		$acl = 'public-read';
         try
@@ -178,7 +179,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 		} catch (OssException $e) {
             $this->assertTrue(false);
         }
-        $this->assertEquals($acl, $result);
+        $this->assertEquals($acl, $result['visibility']);
     }
 
     /**

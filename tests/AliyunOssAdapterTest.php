@@ -32,7 +32,6 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
         $adapter = new AliyunOssAdapter($client, $bucket);
 		
 		$dir = time() . 'aliyun-oss-php-flysystem-test-cases';
-        $adapter->deleteDir($dir);
         $adapter->setPathPrefix($dir);
 
         $filesystem = new Filesystem($adapter);

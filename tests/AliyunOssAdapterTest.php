@@ -94,7 +94,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 		$dest_file = time() . "test-write-file";
         try
 		{
-			$this->filesystem->write($dest_file, '123'));
+			$this->filesystem->write($dest_file, '123');
 		} catch (OssException $e) {
 	        $this->assertTrue(false);
 		}
@@ -140,7 +140,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
     {
         try
 		{
-			$this->filesystem->update($this->prepare_file, __FUNCTION__));
+			$this->filesystem->update($this->prepare_file, __FUNCTION__);
 		} catch (OssException $e) {
             $this->assertTrue(false);
         }

@@ -11,7 +11,7 @@ This is a Flysystem adapter for the Aliyun OSS ~2.0.4
 composer require moyue/aliyun-oss-flysystem dev-master
 ```
 
-## run samples
+## Runing samples
 
 ```
 cd vendor/moyue/aliyun-oss-flysystem/
@@ -26,7 +26,7 @@ modify the following config:
 php samples/AliyunOssFlysystem.php
 ```
 
-## run tests
+## Runing tests
 
 ```bash
 export OSS_ACCESS_KEY_ID=your id

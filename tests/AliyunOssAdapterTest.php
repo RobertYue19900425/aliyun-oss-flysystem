@@ -30,8 +30,6 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
 
         $client = new OssClient($accessId, $accessKey, $endPoint);
         $adapter = new AliyunOssAdapter($client, $bucket);
-//        $this->assertEquals($bucket, $this->filesystem->getBucket());
-//        $this->assertEquals($client, $this->filesystem->getClient());
 			
 		$dir = time() . 'aliyun-oss-php-flysystem-test-cases';
         $adapter->setPathPrefix($dir);
@@ -147,6 +145,7 @@ class AliyunOssAdapterTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue(false);
         }
     }
+	
 	/**
 	  *
 	  */

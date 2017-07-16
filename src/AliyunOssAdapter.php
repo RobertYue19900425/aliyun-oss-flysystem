@@ -97,8 +97,6 @@ class AliyunOssAdapter extends AbstractAdapter
         $object = $this->applyPathPrefix($path);
         $options = $this->getOptionsFromConfig($config);
 
-        $options[OssClient::OSS_CHECK_MD5] = true;
-
         if (! isset($options[OssClient::OSS_CONTENT_TYPE])) {
             $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, '');
         }
@@ -156,6 +154,53 @@ class AliyunOssAdapter extends AbstractAdapter
         }
         return $this->write($path, $contents, $config);
     }
+
+    /**
+     * Write stream.
+     *
+     * @param string $path
+     * @param string $resource
+     * @param Config $config Config object
+     * @return array|false false on failure file meta data on success
+     */
+    public function writeStream($path, $resource, Config $config)
+    {
+        $object = $this->applyPathPrefix($path);
+        $options = $this->getOptionsFromConfig($config);
+
+        if (! isset($options[OssClient::OSS_LENGTH])) {
+            $options[OssClient::OSS_LENGTH] = Util::getStreamSize($resource);
+        }
+
+        if (! isset($options[OssClient::OSS_CONTENT_TYPE])) {
+            $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, $resource);
+        }
+
+        $this->client->putObject($this->bucket, $object, $resource, $options);
+    
+		$type = 'file';
+        $result = compact('type', 'path', 'contents');
+        $result['mimetype'] = $options[OssClient::OSS_CONTENT_TYPE];
+        $result['size'] = $options[OssClient::OSS_LENGTH];
+        return $result;    
+    }
+
+    /**
+     * Update stream.
+     *
+     * @param string $path
+     * @param string $resource
+     * @param Config $config Config object
+     * @return array|false false on failure file meta data on success
+     */
+    public function updateStream($path, $resource, Config $config)
+    {
+		if (! $config->has('visibility') && ! $config->has('ACL')) {
+        	$config->set('ACL', $this->getObjectACL($path));
+        }
+        return $this->writeStream($path, $resource, $config);
+    }
+
 
     /**
      * Rename a file.

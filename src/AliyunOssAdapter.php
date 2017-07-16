@@ -176,7 +176,7 @@ class AliyunOssAdapter extends AbstractAdapter
             $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, $resource);
         }
 
-        $this->client->putObject($this->bucket, $object, $resource, $options);
+        $this->client->uploadFile($this->bucket, $object, $resource, $options);
     
 		$type = 'file';
         $result = compact('type', 'path', 'contents');
